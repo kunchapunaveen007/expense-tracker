@@ -1,0 +1,56 @@
+<ul id="list"></ul>
+
+<script>
+    const API = "http://127.0.0.1:5000/expenses";
+
+    function load() {
+        fetch(API)
+            .then(r => r.json())
+            .then(data => {
+                const ul = document.getElementById("list");
+                ul.innerHTML = "";
+                data.forEach(e => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `${e.title} - $${e.amount} 
+                                    <button onclick="editExpense(${e.id}, '${e.title}', ${e.amount})">Edit</button>
+                                    <button onclick="deleteExpense(${e.id})">Delete</button>`;
+                    ul.appendChild(li);
+                });
+            });
+    }
+
+    function addExpense() {
+        fetch(API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                title: document.getElementById("title").value,
+                amount: parseFloat(document.getElementById("amount").value)
+            })
+        }).then(() => {
+            document.getElementById("title").value = "";
+            document.getElementById("amount").value = "";
+            load();
+        });
+    }
+
+    function deleteExpense(id) {
+        fetch(`${API}/${id}`, {
+            method: "DELETE"
+        }).then(() => load());
+    }
+
+    function editExpense(id, oldTitle, oldAmount) {
+        const newTitle = prompt("Edit title:", oldTitle);
+        const newAmount = prompt("Edit amount:", oldAmount);
+        if (newTitle !== null && newAmount !== null) {
+            fetch(`${API}/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title: newTitle, amount: parseFloat(newAmount) })
+            }).then(() => load());
+        }
+    }
+
+    load();
+</script>
